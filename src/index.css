@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased font-sans;
+}
+
+/* Custom layout utility metrics */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
