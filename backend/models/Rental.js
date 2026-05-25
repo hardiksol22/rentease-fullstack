@@ -14,5 +14,4 @@ const rentalSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// FIXED: Changed module.exports to export default
 export default mongoose.model('Rental', rentalSchema);

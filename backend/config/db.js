@@ -5,7 +5,7 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`RentEase DB Stack Bootstrapped: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`Database connection failure: ${error.message}`);
+    console.error(`❌ Database Connection Failure: ${error.message}`);
     process.exit(1);
   }
 };

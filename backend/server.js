@@ -7,7 +7,6 @@ import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import rentalRoutes from './routes/rentalRoutes.js';
 import maintenanceRoutes from './routes/maintenanceRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -17,14 +16,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Main Resource Root Endpoint Bindings
+// Main Resource Routing Mappings
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/admin', adminRoutes);
 
-// Shared Error Handler Pipeline
+// Shared Error Handler Pipeline (Production Safe)
 app.use((err, req, res, next) => {
   const code = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(code).json({

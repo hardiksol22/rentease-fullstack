@@ -1,112 +1,131 @@
-import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth.js';
-import MaintenanceModal from '../components/dashboard/MaintenanceModal.jsx';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext.jsx';
+import { api } from '../services/api.js';
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('active');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const { user } = useContext(AuthContext);
+  const [rentals, setRentals] = useState([]);
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [activeRentals] = useState([
-    { id: 'RNT-9081', title: 'Luxury 3-Seater Velvet Sofa', category: 'Furniture', monthlyRent: 900, daysRemaining: 142, countdownStatus: 'Delivered', image: '/sofa.jpg' },
-    { id: 'RNT-4311', title: 'Smart Double Door Refrigerator', category: 'Appliances', monthlyRent: 1200, daysRemaining: 8, countdownStatus: 'In Transit', image: '/fridge.jpg' }
-  ]);
+  useEffect(() => {
+    if (!user) return;
+    
+    // Concurrent resolution executing multiple cloud operations simultaneously
+    Promise.all([api.getMyRentals(), api.getMyTickets()])
+      .then(([rentalData, ticketData]) => {
+        setRentals(rentalData);
+        setTickets(ticketData);
+      })
+      .catch((err) => console.error("Dashboard profile loader fault line:", err))
+      .finally(() => setLoading(false));
+  }, [user]);
 
-  const [rentalHistory] = useState([
-    { id: 'RNT-1022', title: 'Ergonomic Office Chair', category: 'Furniture', totalPrice: 1050, completedDate: '12 Jan 2026', status: 'Returned' }
-  ]);
+  if (loading) {
+    return <div className="text-center py-24 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Secured Profile Ecosystem...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto">
-        <header className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Hello, {user?.name || 'Customer'}</h1>
-            <p className="text-gray-500 mt-1 text-sm">Manage your active subscription terms and support tickets</p>
-          </div>
-          <div className="bg-blue-50 text-blue-700 rounded-xl px-4 py-2 text-sm font-bold border border-blue-100">
-            Account Verified
-          </div>
-        </header>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen bg-gray-50/20">
+      
+      {/* Profile Header Canvas */}
+      <header className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md uppercase tracking-wider">Account Member</span>
+          <h1 className="text-2xl font-black text-gray-900 mt-2 tracking-tight">Hello, {user?.name}</h1>
+          <p className="text-gray-400 text-xs mt-0.5">Primary Session Email: {user?.email} | Target Operations: {user?.city}</p>
+        </div>
+        <div className="bg-gray-900 text-white rounded-xl px-5 py-3 text-center">
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Active Commitments</p>
+          <p className="text-xl font-black mt-0.5">{rentals.length} Orders</p>
+        </div>
+      </header>
 
-        <div className="flex border-b border-gray-200 mb-8 gap-6">
-          <button 
-            onClick={() => setActiveTab('active')}
-            className={`pb-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'active' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
-          >
-            Active Rentals ({activeRentals.length})
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`pb-4 text-sm font-bold border-b-2 transition-all ${activeTab === 'history' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
-          >
-            Rental History
-          </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Double-Column Section: Rental Contracts */}
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <span>📋</span> Active Rental Subscriptions
+          </h2>
+          
+          {rentals.length === 0 ? (
+            <div className="bg-white border border-dashed rounded-2xl text-center py-16 text-gray-400 text-xs font-bold uppercase tracking-wider">No active rental agreements logged into account records.</div>
+          ) : (
+            <div className="space-y-4">
+              {rentals.map((lease) => (
+                <div key={lease._id} className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="flex gap-4 items-center">
+                    <img 
+                      src={lease.productId?.image} alt="" 
+                      className="w-14 h-14 object-cover rounded-xl bg-gray-50 border"
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=80'; }}
+                    />
+                    <div>
+                      <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{lease.productId?.name || 'Leased Inventory Asset'}</h4>
+                      <p className="text-[11px] font-semibold text-blue-600 mt-0.5">Tenure: {lease.tenureSelected} Months contract plan</p>
+                      <p className="text-[10px] text-gray-400 mt-1 font-medium">Destination: {lease.deliveryLocation}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-right flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto border-t sm:border-0 pt-3 sm:pt-0 border-dashed">
+                    <div>
+                      <p className="text-[9px] text-gray-400 font-black uppercase tracking-wider">Rate Applied</p>
+                      <p className="font-black text-gray-900 text-base">₹{lease.monthlyRentApplied}<span className="text-[10px] text-gray-400 font-medium">/mo</span></p>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md mt-1.5 ${
+                      lease.deliveryStatus === 'Delivered' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
+                    }`}>
+                      {lease.deliveryStatus}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {activeTab === 'active' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activeRentals.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col sm:flex-row gap-5">
-                <div className="w-full sm:w-28 h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" onError={(e) => { e.target.src = '/placeholder.jpg'; }} />
-                </div>
-                <div className="flex-grow flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-bold text-gray-900 text-lg leading-snug">{item.title}</h3>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${item.countdownStatus === 'Delivered' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                        {item.countdownStatus}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-xs mt-0.5">Agreement ID: {item.id}</p>
-                    <p className="text-blue-600 font-extrabold text-sm mt-2">₹{item.monthlyRent}/mo</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center gap-4">
-                    <div className="text-xs text-gray-500 font-medium">Time Remaining: <span className="text-gray-900 font-bold">{item.daysRemaining} days</span></div>
-                    <button 
-                      onClick={() => { setSelectedProduct(item.title); setIsModalOpen(true); }}
-                      className="bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-bold py-2 px-3.5 rounded-lg transition-colors"
-                    >
-                      Request Support
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-400 font-bold text-xs uppercase border-b border-gray-100">
-                  <th className="p-4 pl-6">Agreement ID</th>
-                  <th className="p-4">Product Details</th>
-                  <th className="p-4">Return Date</th>
-                  <th className="p-4">Aggregated Price</th>
-                  <th className="p-4 pr-6">Status</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-100 font-medium text-gray-700">
-                {rentalHistory.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 pl-6 font-mono text-xs text-gray-500">{log.id}</td>
-                    <td className="p-4 text-gray-900 font-bold">{log.title}</td>
-                    <td className="p-4 text-gray-500">{log.completedDate}</td>
-                    <td className="p-4 font-semibold">₹{log.totalPrice}</td>
-                    <td className="p-4 pr-6"><span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full font-bold">{log.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* Right Single Column: Registered Support Tickets */}
+        <div className="space-y-6">
+          <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <span>🛠️</span> Support Tickets
+          </h2>
 
-        {isModalOpen && (
-          <MaintenanceModal productName={selectedProduct} onClose={() => setIsModalOpen(false)} />
-        )}
+          {tickets.length === 0 ? (
+            <div className="bg-white border border-dashed rounded-2xl text-center py-16 text-gray-400 text-xs font-bold uppercase tracking-wider">Clear history desk. No support issues found.</div>
+          ) : (
+            <div className="space-y-3">
+              {tickets.map((ticket) => (
+                <div key={ticket._id} className="bg-white border border-gray-100 shadow-sm rounded-xl p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[9px] font-black uppercase bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                        {ticket.issueCategory}
+                      </span>
+                      <h5 className="font-bold text-xs text-gray-900 mt-2 line-clamp-1">
+                        Ref: {ticket.rentalId?.productId?.name || 'Lease Asset'}
+                      </h5>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                      ticket.status === 'Open' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {ticket.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed font-medium line-clamp-2 bg-gray-50 p-2 rounded-lg">
+                    "{ticket.description}"
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-bold">
+                    📅 Scheduled Visit: {new Date(ticket.scheduledDate).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
+
     </div>
   );
 }

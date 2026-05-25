@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { api } from '../services/api.js'; // FIXED: Import the real API service pipeline
 
 export const AuthContext = createContext(null);
 
@@ -6,48 +7,45 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Load active session token layout on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('rentease_user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        localStorage.removeItem('rentease_user');
+      }
     }
     setLoading(false);
   }, []);
 
+  // FIXED: Removed mock object, connected directly to Express /auth/login route
   const login = async (email, password) => {
-    if (email && password) {
-      let role = 'customer';
-      if (email.startsWith('admin')) role = 'admin';
+    try {
+      const data = await api.login({ email, password });
       
-      const mockUser = {
-        id: 'usr-' + Math.random().toString(36).substr(2, 9),
-        name: email.split('@')[0],
-        email: email,
-        role: role,
-        token: 'mock-jwt-token-xyz'
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('rentease_user', JSON.stringify(mockUser));
+      setUser(data);
+      localStorage.setItem('rentease_user', JSON.stringify(data));
       return true;
+    } catch (error) {
+      console.error("❌ Authentication Gateway Login Error:", error.response?.data?.message || error.message);
+      return false;
     }
-    return false;
   };
 
-  const register = async (name, email, password) => {
-    if (name && email && password) {
-      const mockUser = {
-        id: 'usr-' + Math.random().toString(36).substr(2, 9),
-        name: name,
-        email: email,
-        role: 'customer',
-        token: 'mock-jwt-token-abc'
-      };
-      setUser(mockUser);
-      localStorage.setItem('rentease_user', JSON.stringify(mockUser));
+  // FIXED: Wrapped payload to pass 'city' parameters directly down to Mongoose database
+  const register = async (name, email, password, city) => {
+    try {
+      const data = await api.register({ name, email, password, city });
+      
+      setUser(data);
+      localStorage.setItem('rentease_user', JSON.stringify(data));
       return true;
+    } catch (error) {
+      console.error("❌ Authentication Gateway Onboarding Error:", error.response?.data?.message || error.message);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
