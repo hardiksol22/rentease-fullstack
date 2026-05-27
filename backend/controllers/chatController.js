@@ -1,37 +1,45 @@
 // backend/controllers/chatController.js
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const handleChatMessage = async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) {
-      return res.status(400).json({ success: false, message: "Query string stream missing" });
+      return res.status(400).json({ success: false, message: "Query text stream missing" });
     }
 
-    const query = message.toLowerCase();
-    let response = "";
+    // Initialize Gemini with secure Environment API Key
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
+    // Using the optimized, fast and free-tier gemini model
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: `You are RentEase AI, the smart virtual assistant for the RentEase platform. 
+      Your job is to assist users and recruiters exploring the site.
+      
+      Context About RentEase:
+      - It is a premium Furniture and Appliances rental platform with 28 products[cite: 5].
+      - It features a dynamic tenure pricing model: 3, 6, and 12 months[cite: 7, 43]. 
+      - Longer commitments give discounts (6 months gives 5% off, 12 months gives 10% off)[cite: 112, 154].
+      - Escrow security deposits are fully refundable after asset retrieval[cite: 96, 109].
+      
+      Recruiter Testing Features to highlight if asked:
+      - Testing UPI Addresses for sandbox checkouts: 'hardiksol@bob' or 'hardiksol@22'[cite: 557].
+      - Secret Admin Dashboard gate passcode: 'RentEaseAdmin2026'[cite: 553].
+      
+      Keep your responses professional, friendly, brief, and beautifully formatted using markdown bullet points if necessary. Avoid giving long paragraphs.`
+    });
 
-    // Advanced Contextual NLP Routing Rules for RentEase Architecture
-    if (query.includes("hi") || query.includes("hello") || query.includes("hey")) {
-      response = "Hello! Welcome to RentEase AI Assistant. How can I help you optimize your premium furniture or appliance lease today? 😊";
-    } else if (query.includes("furniture") || query.includes("sofa") || query.includes("bed") || query.includes("chair")) {
-      response = "RentEase offers premium, high-density foam sofas, solid wood beds, and ergonomic office configurations under our Furniture catalog. Select your tenure tier (3, 6, 12 months) for optimized pricing structures!";
-    } else if (query.includes("appliance") || query.includes("tv") || query.includes("fridge") || query.includes("ac") || query.includes("washing")) {
-      response = "Our Smart Appliances fleet includes 4K Smart TVs, multi-door invertor refrigerators, and split AC units. All appliances come with complimentary free maintenance coverage!";
-    } else if (query.includes("tenure") || query.includes("month") || query.includes("duration") || query.includes("price")) {
-      response = "RentEase operates on an inverse tenure billing matrix: choosing longer lease commitments (e.g., 12 Months) automatically unlocks lower monthly installments and reduces escrow security deposits.";
-    } else if (query.includes("deposit") || query.includes("security") || query.includes("money")) {
-      response = "Every rent assignment requires a minor Escrow Safety Deposit. Don't worry! This amount is completely refundable and is safely processed back to your verified VPA within 48 hours of asset retrieval.";
-    } else if (query.includes("upi") || query.includes("checkout") || query.includes("pay") || query.includes("hardik")) {
-      response = "To simulate secure order placements on our sandbox network, advance to the Checkout page, choose Instant UPI, and verify using mock VPA identities like 'hardiksol@bob' or 'hardiksol@22'.";
-    } else if (query.includes("admin") || query.includes("passcode") || query.includes("secret")) {
-      response = "Authorized Personnel can access the Executive Cockpit via the Navbar Shield Icon. Register an admin account using the protected gate passcode: 'RentEaseAdmin2026'.";
-    } else {
-      response = "Interesting question! As the RentEase Virtual Agent, I can tell you that our platform supports Role-Based Access Control, live MERN item streams, and dynamic order pipelines. Let me know if you want to test our checkout checkout configurations!";
-    }
+    // Generate response stream from Gemini
+    const result = await model.generateContent(message);
+    const aiResponse = result.response.text();
 
-    return res.status(200).json({ success: true, response });
+    return res.status(200).json({ success: true, response: aiResponse });
   } catch (error) {
-    console.error("❌ Chatbot system glitch:", error);
-    return res.status(500).json({ success: false, message: "Internal assistant runtime interruption" });
+    console.error("❌ Gemini AI Integration Engine Error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "AI Engine processing error. Please ensure GEMINI_API_KEY is configured." 
+    });
   }
 };
