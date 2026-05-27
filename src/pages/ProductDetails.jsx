@@ -15,6 +15,27 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // 🛡️ Smart Utility to read images directly from Vercel's public directory
+  const getVercelRelativeImage = (imagePath) => {
+    if (!imagePath) return 'https://via.placeholder.com/300?text=RentEase+Asset';
+
+    let cleanPath = imagePath;
+
+    // Agar path mein localhost ka url ya render ka url chipka hua hai, toh use mita do
+    if (cleanPath.includes('localhost:5000')) {
+      cleanPath = cleanPath.split('localhost:5000')[1];
+    } else if (cleanPath.includes('rentease-backend-4uec.onrender.com')) {
+      cleanPath = cleanPath.split('rentease-backend-4uec.onrender.com')[1];
+    }
+
+    // Ensure kijiye ki path humesha '/' se shuru ho (like /images/sofa.jpg)
+    if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
+      cleanPath = '/' + cleanPath;
+    }
+
+    return cleanPath; // Yeh Vercel ke domain se relative image fetch karega
+  };
+
   useEffect(() => {
     api.getProductById(id)
       .then(data => {
@@ -50,8 +71,13 @@ export default function ProductDetails() {
         {/* Left Side: Product Image Display */}
         <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 relative">
           <img 
-            src={product.image} alt={product.name} 
+            src={getVercelRelativeImage(product.image)} 
+            alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-102"
+            onError={(e) => {
+              // Backup placeholder trigger if anything fails
+              e.target.src = 'https://via.placeholder.com/600?text=RentEase+Premium+Asset';
+            }}
           />
           <span className="absolute top-4 left-4 bg-gray-950 text-white font-black text-[10px] tracking-widest px-3 py-1.5 rounded-xl uppercase">
             {product.category}

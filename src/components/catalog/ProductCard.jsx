@@ -2,19 +2,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ProductCard({ product }) {
-  // 🛡️ Bulletproof Production Image Utility Engine
-  const getLiveImageUrl = (imagePath) => {
+  // 🛡️ Smart Utility to read images directly from Vercel's public directory
+  const getVercelRelativeImage = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300?text=RentEase+Asset';
 
-    // Rule 1: Agar path pehle se absolute internet link hai
-    if (imagePath.startsWith('http')) {
-      // Localhost links ko dynamically live Render backend mesh url se badal do
-      return imagePath.replace('http://localhost:5000', 'https://rentease-backend-4uec.onrender.com');
+    let cleanPath = imagePath;
+
+    // Agar path mein localhost ka url ya render ka url chipka hua hai, toh use mita do
+    if (cleanPath.includes('localhost:5000')) {
+      cleanPath = cleanPath.split('localhost:5000')[1];
+    } else if (cleanPath.includes('rentease-backend-4uec.onrender.com')) {
+      cleanPath = cleanPath.split('rentease-backend-4uec.onrender.com')[1];
     }
 
-    // Rule 2: Relative configurations (like /images/sofa.jpg or images/sofa.jpg)
-    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-    return `https://rentease-backend-4uec.onrender.com${cleanPath}`;
+    // Ensure kijiye ki path humesha '/' se shuru ho (like /images/sofa.jpg)
+    if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
+      cleanPath = '/' + cleanPath;
+    }
+
+    return cleanPath; // Yeh Vercel ke domain se relative image fetch karega
   };
 
   return (
@@ -22,11 +28,11 @@ export default function ProductCard({ product }) {
       {/* Product Image Frame */}
       <div className="relative overflow-hidden bg-gray-100 h-48 w-full">
         <img
-          src={getLiveImageUrl(product.image)}
+          src={getVercelRelativeImage(product.image)}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
-            // Edge Case Protection: Agar cloud server fetch block kare, placeholder chal jaye
+            // Placeholder backup code if file name casing mismatches
             e.target.src = 'https://via.placeholder.com/300?text=RentEase+Premium+Asset';
           }}
         />
