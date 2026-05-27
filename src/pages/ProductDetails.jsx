@@ -11,29 +11,18 @@ export default function ProductDetails() {
   const { user } = useContext(AuthContext);
 
   const [product, setProduct] = useState(null);
-  const [tenure, setTenure] = useState(3); // Default to 3 months commitment plan
+  const [tenure, setTenure] = useState(3);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 🛡️ Smart Utility to read images directly from Vercel's public directory
-  const getVercelRelativeImage = (imagePath) => {
+  // 🛡️ Bulletproof Production Image Link Resolver
+  const getCleanProductionImage = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300?text=RentEase+Asset';
-
-    let cleanPath = imagePath;
-
-    // Agar path mein localhost ka url ya render ka url chipka hua hai, toh use mita do
-    if (cleanPath.includes('localhost:5000')) {
-      cleanPath = cleanPath.split('localhost:5000')[1];
-    } else if (cleanPath.includes('rentease-backend-4uec.onrender.com')) {
-      cleanPath = cleanPath.split('rentease-backend-4uec.onrender.com')[1];
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
     }
-
-    // Ensure kijiye ki path humesha '/' se shuru ho (like /images/sofa.jpg)
-    if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
-      cleanPath = '/' + cleanPath;
-    }
-
-    return cleanPath; // Yeh Vercel ke domain se relative image fetch karega
+    const filename = imagePath.split('/').pop();
+    return `/images/${filename}`;
   };
 
   useEffect(() => {
@@ -52,14 +41,12 @@ export default function ProductDetails() {
   if (loading) return <div className="text-center py-24 text-xs font-bold text-gray-400 uppercase tracking-widest">Loading Item Spec Profile Sheet...</div>;
   if (error || !product) return <div className="text-center py-12 text-red-500 font-bold">{error || 'Product not found.'}</div>;
 
-  // Real-time Business Logic pricing rules
   let discountFactor = 1.0;
   if (tenure === 6) discountFactor = 0.95;
   if (tenure === 12) discountFactor = 0.90;
   const currentCalculatedRent = Math.round(product.monthlyRent * discountFactor);
 
   const handleAddToCart = () => {
-    // Injecting active tenure choice seamlessly into the item metadata package
     addToCart({ ...product, tenure, calculatedRent: currentCalculatedRent });
     navigate('/cart');
   };
@@ -71,11 +58,10 @@ export default function ProductDetails() {
         {/* Left Side: Product Image Display */}
         <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 relative">
           <img 
-            src={getVercelRelativeImage(product.image)} 
+            src={getCleanProductionImage(product.image)} 
             alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-102"
             onError={(e) => {
-              // Backup placeholder trigger if anything fails
               e.target.src = 'https://via.placeholder.com/600?text=RentEase+Premium+Asset';
             }}
           />
@@ -84,12 +70,12 @@ export default function ProductDetails() {
           </span>
         </div>
 
-        {/* Right Side: Product Configuration & Business Rules */}
+        {/* Right Side: Product Details */}
         <div className="flex flex-col justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-snug">{product.name}</h1>
             <p className="text-xs text-gray-400 mt-2 font-semibold">Refundable Security Deposit: <span className="text-gray-800 font-bold">₹{product.securityDeposit}</span></p>
-            <p className="text-gray-500 text-sm mt-5 leading-relaxed font-medium">{product.description || "Premium verified subscription logistics catalog deployment asset model optimized for dynamic rental lifecycles."}</p>
+            <p className="text-gray-500 text-sm mt-5 leading-relaxed font-medium">{product.description || "Premium verified subscription logistics asset model."}</p>
 
             {/* Tenure Adjustment Buttons */}
             <div className="mt-8">
@@ -116,7 +102,7 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          {/* Checkout pricing callout anchor foot */}
+          {/* Checkout Pricing Callout */}
           <div className="mt-8 pt-6 border-t border-dashed border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Adjusted Billing Plan</span>

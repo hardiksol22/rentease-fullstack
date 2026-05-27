@@ -2,25 +2,18 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ProductCard({ product }) {
-  // 🛡️ Smart Utility to read images directly from Vercel's public directory
-  const getVercelRelativeImage = (imagePath) => {
+  // 🛡️ Bulletproof Production Image Link Resolver
+  const getCleanProductionImage = (imagePath) => {
     if (!imagePath) return 'https://via.placeholder.com/300?text=RentEase+Asset';
 
-    let cleanPath = imagePath;
-
-    // Agar path mein localhost ka url ya render ka url chipka hua hai, toh use mita do
-    if (cleanPath.includes('localhost:5000')) {
-      cleanPath = cleanPath.split('localhost:5000')[1];
-    } else if (cleanPath.includes('rentease-backend-4uec.onrender.com')) {
-      cleanPath = cleanPath.split('rentease-backend-4uec.onrender.com')[1];
+    // Rule 1: Agar link pehle se hi ek live internet url hai (jaise Unsplash), use it directly!
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
     }
 
-    // Ensure kijiye ki path humesha '/' se shuru ho (like /images/sofa.jpg)
-    if (!cleanPath.startsWith('/') && !cleanPath.startsWith('http')) {
-      cleanPath = '/' + cleanPath;
-    }
-
-    return cleanPath; // Yeh Vercel ke domain se relative image fetch karega
+    // Rule 2: Fallback agar koi relative path ho
+    const filename = imagePath.split('/').pop();
+    return `/images/${filename}`;
   };
 
   return (
@@ -28,11 +21,10 @@ export default function ProductCard({ product }) {
       {/* Product Image Frame */}
       <div className="relative overflow-hidden bg-gray-100 h-48 w-full">
         <img
-          src={getVercelRelativeImage(product.image)}
+          src={getCleanProductionImage(product.image)}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
-            // Placeholder backup code if file name casing mismatches
             e.target.src = 'https://via.placeholder.com/300?text=RentEase+Premium+Asset';
           }}
         />
