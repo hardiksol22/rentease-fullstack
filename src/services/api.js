@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Reads baseline configuration target from .env.local or falls back to port 5000
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// ✅ FIXED: Localhost backup stream ko live production Render URL se replace kar diya hai
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://rentease-backend-4uec.onrender.com/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -56,6 +56,7 @@ export const api = {
   },
 
   getProductById: async (id) => {
+    
     const response = await apiClient.get(`/products/${id}`);
     return response.data;
   },
