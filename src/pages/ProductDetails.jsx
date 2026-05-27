@@ -15,14 +15,15 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 🛡️ Bulletproof Production Image Link Resolver
   const getCleanProductionImage = (imagePath) => {
-    if (!imagePath) return 'https://via.placeholder.com/300?text=RentEase+Asset';
+    if (!imagePath) return 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80';
+    if (imagePath.includes('localhost:5000')) {
+      return `https://via.placeholder.com/800x600/f3f4f6/2563eb?text=${encodeURIComponent(product.name)}`;
+    }
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
-    const filename = imagePath.split('/').pop();
-    return `/images/${filename}`;
+    return imagePath;
   };
 
   useEffect(() => {
@@ -54,15 +55,13 @@ export default function ProductDetails() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-8 p-6 md:p-10">
-        
-        {/* Left Side: Product Image Display */}
         <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 relative">
           <img 
             src={getCleanProductionImage(product.image)} 
             alt={product.name} 
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-102"
             onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/600?text=RentEase+Premium+Asset';
+              e.target.src = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80';
             }}
           />
           <span className="absolute top-4 left-4 bg-gray-950 text-white font-black text-[10px] tracking-widest px-3 py-1.5 rounded-xl uppercase">
@@ -70,14 +69,12 @@ export default function ProductDetails() {
           </span>
         </div>
 
-        {/* Right Side: Product Details */}
         <div className="flex flex-col justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight leading-snug">{product.name}</h1>
             <p className="text-xs text-gray-400 mt-2 font-semibold">Refundable Security Deposit: <span className="text-gray-800 font-bold">₹{product.securityDeposit}</span></p>
-            <p className="text-gray-500 text-sm mt-5 leading-relaxed font-medium">{product.description || "Premium verified subscription logistics asset model."}</p>
+            <p className="text-gray-500 text-sm mt-5 leading-relaxed font-medium">{product.description}</p>
 
-            {/* Tenure Adjustment Buttons */}
             <div className="mt-8">
               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Choose Lease Commitment Duration</h3>
               <div className="grid grid-cols-3 gap-3">
@@ -102,7 +99,6 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          {/* Checkout Pricing Callout */}
           <div className="mt-8 pt-6 border-t border-dashed border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Adjusted Billing Plan</span>
@@ -110,14 +106,10 @@ export default function ProductDetails() {
                 ₹{currentCalculatedRent}<span className="text-xs text-gray-400 font-bold tracking-normal">/mo</span>
               </p>
             </div>
-            <button
-              onClick={handleAddToCart}
-              className="bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-8 rounded-2xl shadow-md text-xs uppercase tracking-wider transition-all duration-200"
-            >
+            <button onClick={handleAddToCart} className="bg-gray-900 hover:bg-blue-600 text-white font-black py-4 px-8 rounded-2xl shadow-md text-xs uppercase tracking-wider transition-all duration-200">
               Add to Rental Cart
             </button>
           </div>
-
         </div>
       </div>
     </div>
