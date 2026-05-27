@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// ✅ FIXED: Localhost backup stream ko live production Render URL se replace kar diya hai
+// ✅ Live Render production URL configured as primary baseline
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://rentease-backend-4uec.onrender.com/api';
 
 const apiClient = axios.create({
@@ -12,7 +12,7 @@ const apiClient = axios.create({
 
 /**
  * 🔒 Global Outbound Request Interceptor
- * local storage se secure session user metadata read karke automatically
+ * Local storage se secure session user metadata read karke automatically
  * outgoing requests me authorization token bearer attach karega.
  */
 apiClient.interceptors.request.use(
@@ -45,7 +45,7 @@ export const api = {
     return response.data;
   },
 
-  // 2️⃣ Marketplace Catalog Inventory Routes (FIXED: Added search support back)
+  // 2️⃣ Marketplace Catalog Inventory Routes
   getProducts: async (category = '', search = '') => {
     let url = '/products?';
     if (category) url += `category=${category}&`;
@@ -56,7 +56,6 @@ export const api = {
   },
 
   getProductById: async (id) => {
-    
     const response = await apiClient.get(`/products/${id}`);
     return response.data;
   },
@@ -80,6 +79,12 @@ export const api = {
 
   getMyTickets: async () => {
     const response = await apiClient.get('/maintenance/my-tickets');
+    return response.data;
+  },
+
+  // 🤖 5️⃣ AI Chatbot Support Engine Pipeline Gateway
+  sendChatMessage: async (message) => {
+    const response = await apiClient.post('/chat', { message });
     return response.data;
   }
 };

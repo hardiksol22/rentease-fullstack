@@ -4,6 +4,9 @@ import { Routes, Route } from 'react-router-dom';
 // Layout Structure Component (FIXED: Aligned to your layout folder path)
 import Navbar from './components/layout/Navbar.jsx'; 
 
+// 🤖 Added: Global AI Chatbot Support Agent Widget
+import AIChatbot from './components/common/AIChatbot.jsx';
+
 // Core Marketplace & Customer Journey Pages
 import Home from './pages/Home.jsx';
 import ProductDetails from './pages/ProductDetails.jsx';
@@ -15,13 +18,12 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
-// Open frontend/src/App.jsx and append these imports at the top:
 import AdminRegister from './pages/AdminRegister.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-50/30 text-gray-900 font-sans antialiased">
+    <div className="min-h-screen bg-gray-50/30 text-gray-900 font-sans antialiased relative">
       {/* Global Navigation Bar rendered across all routing pages */}
       <Navbar />
       
@@ -40,11 +42,13 @@ export default function App() {
           {/* User & Administration Central Command Spaces */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
-          {/*Inside your <Routes> system stack, add these lines*/}
           <Route path="/admin-register" element={<AdminRegister />} />
           <Route path="/admin-login" element={<AdminLogin />} />
         </Routes>
       </main>
+
+      {/* 🤖 GLOBAL INJECTION: Active Chatbot layer running continuously on all routes */}
+      <AIChatbot />
     </div>
   );
 }
