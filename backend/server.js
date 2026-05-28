@@ -3,12 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 
-// 📂 Core Microservices Route Imports
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import rentalRoutes from './routes/rentalRoutes.js';
 import maintenanceRoutes from './routes/maintenanceRoutes.js';
-import chatRoutes from './routes/chatRoutes.js'; // 🤖 Added: New AI Chatbot Gateway
+import chatRoutes from './routes/chatRoutes.js'; // 🔥 YEH IMPORT MISSING THA!
 
 dotenv.config();
 connectDB();
@@ -18,22 +17,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🛰️ Main Resource Routing Mappings
+// Main Resource Routing Mappings
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/chat', chatRoutes); // 🤖 Added: Chatbot Engine Mounted Safely
+app.use('/api/chat', chatRoutes); // 🔥 YEH ROUTE MOUNTING MISSING THI!
 
-// 🩺 Global API Gateway Health Check Router (Helps verify Render is alive)
-app.get('/', (req, res) => {
-  res.status(200).json({ 
-    success: true, 
-    message: "RentEase Enterprise Full-Stack API Node Running Smoothly 📦 Engine Status: Live" 
-  });
-});
-
-// 🔒 Shared Error Handler Pipeline (Production Safe) - Kept at the absolute bottom
+// Shared Error Handler Pipeline (Production Safe)
 app.use((err, req, res, next) => {
   const code = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(code).json({
@@ -43,4 +34,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 RentEase Server running securely on port ${PORT}`));
+app.listen(PORT, () => console.log(`RentEase Server running on port ${PORT}`));
