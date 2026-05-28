@@ -4,29 +4,27 @@ export const handleChatMessage = async (req, res) => {
   try {
     const { message } = req.body;
 
-    // 1️⃣ Safe Check for API Key existence
+    // 1️⃣ Check if Key exists in environment variables context
     if (!process.env.GEMINI_API_KEY) {
-      console.error("❌ API Key missing inside Render environment variables context.");
-      return res.status(500).json({ error: "Gemini API key is missing on Render settings." });
+      return res.json({ reply: "❌ Diagnostic Error: Render par GEMINI_API_KEY missing hai!" });
     }
 
-    // 2️⃣ Runtime Initialization (Injects fresh environment state context flawlessly)
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // 3️⃣ 100% Fail-Safe Prompt Context Injection Strategy (Works on ALL package versions)
-    const bulletproofPrompt = `Context & Instructions: You are RentEase AI, a super fast and helpful assistant for a rental website in India. Help users rent sofas, beds, and smart TVs. Keep answers strictly under 2 sentences. Be polite and professional. Admin passcode is RentEaseAdmin2026.
-    
+    const bulletproofPrompt = `Context: You are RentEase AI, a helpful rental assistant in India. Keep answers under 2 sentences.
 User Query: ${message}`;
 
-    // Executing the standard text generation pipeline
     const result = await model.generateContent(bulletproofPrompt);
     const response = await result.response;
     
+    // Success response
     res.json({ reply: response.text() });
 
   } catch (error) {
-    console.error("❌ Gemini Bot Execution Error:", error);
-    res.status(500).json({ error: "AI Bot failed to complete request lifecycle parsing." });
+    console.error("❌ Gemini Bot Error:", error);
+    
+    // 🔥 MASTER HACK: Yeh line error ko frontend chat widget par force-render kar degi
+    res.json({ reply: `❌ Asli Backend Error: ${error.message}` });
   }
 };
