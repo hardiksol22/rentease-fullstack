@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// ✅ Live Render production URL configured as primary baseline
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://rentease-backend-4uec.onrender.com/api';
+// ⚡ BULLETPROOF FIX: Environment variable ka jhanjhat khatam, direct live URL mapped!
+const API_BASE_URL = 'https://rentease-backend-4uec.onrender.com/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,8 +12,6 @@ const apiClient = axios.create({
 
 /**
  * 🔒 Global Outbound Request Interceptor
- * Local storage se secure session user metadata read karke automatically
- * outgoing requests me authorization token bearer attach karega.
  */
 apiClient.interceptors.request.use(
   (config) => {
