@@ -5,61 +5,64 @@ export const handleChatMessage = async (req, res) => {
     const { message } = req.body;
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.json({ reply: "❌ Backend Alert: Render me GEMINI_API_KEY variable nahi mila!" });
+      return res.json({ reply: "❌ Backend Alert: Render settings me GEMINI_API_KEY variable missing hai!" });
     }
 
-    // 🔥 MASTER CORE CONTEXT INJECTION: Providing complete RentEase system architecture blueprint to the AI
-    const customRentEaseContextPrompt = `
-You are RentEase AI, an advanced customized ChatGPT assistant exclusively engineered for the "RentEase" full-stack web application in India. You possess absolute knowledge of this application's entire architecture, database layout, and operational rules.
-
-Here is the official RentEase Web App Specification Blueprint you must use to answer queries:
-1. PLATFORM OVERVIEW: RentEase is a premium subscription-based full-stack marketplace allowing users across India to rent high-quality Furniture and Smart Appliances without the burden of ownership.
-2. PRODUCTION TECH STACK: 
-   - Frontend: React.js styled with Tailwind CSS, utilizing a fully fluid mobile-responsive grid configuration (collapsing dynamically from grid-cols-1 on mobile to grid-cols-4 on desktop monitors). Hosted on Vercel (rentease-fullstack.vercel.app).
-   - Backend: Node.js with Express.js REST APIs running asynchronously. Hosted on Render (rentease-backend-4uec.onrender.com).
-   - Database: MongoDB Atlas cloud clusters securely connected via Mongoose ODM layers.
-3. INVENTORY SEEDING LOGISTICS: The database is fully pre-seeded with 28 premium items categorized strictly into two divisions: "Furniture" (Sofas, Beds, Wardrobes, Dining sets) and "Appliances" (Smart 4K TVs, Double-Door Fridges, Automatic Washing Machines, Air Fryers). 
-4. LIVE BUSINESS LOGIC & PRICING RULES: 
-   - Every product has a base monthly rent and a 100% refundable security deposit bond.
-   - Dynamic Lease Commitments: Users can choose 3 lease options via a tenure picker:
-     * 3 Months: Standard subscription rate.
-     * 6 Months: 5% flat discount automatically applied to monthly rent.
-     * 12 Months: 10% premium discount automatically applied to monthly rent.
-5. ADMINISTRATIVE SECURITY GATEWAY: The master administrative bypass passcode to access the backend control panels and database monitors is strictly: RentEaseAdmin2026. Keep this secure.
-
-OPERATIONAL INSTRUCTIONS FOR RESPONSE GENERATION:
-- Use the above blueprint data to provide 100% original, accurate, and context-specific replies about RentEase.
-- Keep your responses concise, highly professional, polite, and strictly under 2 or 3 sentences max.
-- Always sound like the premium support engine of RentEase India.
+    // ⚡ HIGHLY OPTIMIZED PROMPT (Token size reduced to prevent account-level throttling)
+    const compressedRentEaseContext = `You are RentEase AI, a ChatGPT assistant for "RentEase" full-stack portal in India. Rent furniture & appliances without ownership.
+Tech Stack: React.js, Tailwind CSS, Vercel frontend (rentease-fullstack.vercel.app). Node.js, Express.js, MongoDB Atlas database, Render backend (rentease-backend-4uec.onrender.com).
+Inventory: 28 pre-seeded items across "Furniture" (Sofas, Beds) & "Appliances" (Smart 4K TVs, Fridges).
+Business Rules: Rent calculated dynamically based on tenure picker: 3 months (Standard), 6 months (5% flat discount), 12 months (10% premium discount). Refundable security deposit collected for all items.
+Admin Gate: Passcode to access backend dashboard monitors is RentEaseAdmin2026.
+Rule: Answer original using this data. Max 2 concise sentences. Be highly professional.
 
 User Query: ${message}`;
 
-    // ⚡ Direct high-speed connection execution channel using the recommended v1beta REST node
-    const googleResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [{ text: customRentEaseContextPrompt }]
-          }
-        ]
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 5000
+    // 🔄 🔥 ORIGINAL LIVE POOL CASCADE: Since gemini-2.0 quota is locked at 0, 
+    // we prioritize 1.5-flash models which have completely independent free quota pools!
+    const activeModelPools = [
+      "gemini-1.5-flash-8b", 
+      "gemini-1.5-flash",
+      "gemini-2.0-flash"
+    ];
+
+    let liveAiReplyText = null;
+    let lastRegistryError = "";
+
+    // Strictly original multi-pool routing traversal
+    for (const modelInstance of activeModelPools) {
+      try {
+        const targetGatewayUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelInstance}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        
+        const googleResponse = await axios.post(
+          targetGatewayUrl,
+          { contents: [{ parts: [{ text: compressedRentEaseContext }] }] },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 4500 }
+        );
+
+        liveAiReplyText = googleResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (liveAiReplyText) {
+          console.log(`🎯 Successfully connected via original live model pool: ${modelInstance}`);
+          break; // Working live model found! Break loop instantly.
+        }
+      } catch (err) {
+        lastRegistryError = err.response?.data?.error?.message || err.message;
+        console.warn(`⚠️ Model pool [${modelInstance}] throttled by Google. Testing next active live channel...`);
       }
-    );
+    }
 
-    const aiReply = googleResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text 
-      || "Welcome to RentEase! I can assist you with our premium furniture and appliance subscription packages.";
-
-    res.json({ reply: aiReply });
+    // 2️⃣ Final Stream Outbound Delivery
+    if (liveAiReplyText) {
+      res.json({ reply: liveAiReplyText });
+    } else {
+      res.json({ 
+        reply: `❌ Google Free Quota Exhausted. Please retry in a few seconds. Reason: ${lastRegistryError}` 
+      });
+    }
 
   } catch (error) {
-    console.error("❌ Context AI Gateway Failure:", error.response?.data || error.message);
-    const serverErrorMessage = error.response?.data?.error?.message || error.message;
-    
-    // Fallback error messaging to ensure user experience does not shatter during demo
-    res.json({ reply: `❌ RentEase AI Engine Notification: ${serverErrorMessage}. Please check your API Quota allocation layers.` });
+    console.error("Critical AI Gateway Failure:", error.message);
+    res.status(500).json({ error: "AI Controller Execution Crash." });
   }
 };
