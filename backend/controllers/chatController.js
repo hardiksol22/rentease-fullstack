@@ -14,9 +14,9 @@ export const handleChatMessage = async (req, res) => {
 
 User Query: ${message}`;
 
-    // 3️⃣ ⚡ PRODUCTION FIX: Changed endpoint version from v1beta to stable v1
+    // 3️⃣ ⚡ ABSOLUTE FIX: Switched back to v1beta because gemini-1.5-flash is registered here
     const googleResponse = await axios.post(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {
