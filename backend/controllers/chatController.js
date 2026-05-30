@@ -1,89 +1,65 @@
 import axios from 'axios';
 
-// Global runtime cache node to store the working model configuration permanently
-let workingEndpointCache = null;
-
 export const handleChatMessage = async (req, res) => {
   try {
     const { message } = req.body;
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.json({ reply: "❌ Backend Alert: Render settings me GEMINI_API_KEY missing hai!" });
+      return res.json({ reply: "❌ Backend Alert: Render me GEMINI_API_KEY variable nahi mila!" });
     }
 
-    const absolutePrompt = `You are RentEase AI, a super fast and helpful assistant for a rental website in India. Help users rent sofas, beds, and smart TVs. Keep answers strictly under 2 sentences. Be polite and professional. Admin passcode is RentEaseAdmin2026.
+    // 🔥 MASTER CORE CONTEXT INJECTION: Providing complete RentEase system architecture blueprint to the AI
+    const customRentEaseContextPrompt = `
+You are RentEase AI, an advanced customized ChatGPT assistant exclusively engineered for the "RentEase" full-stack web application in India. You possess absolute knowledge of this application's entire architecture, database layout, and operational rules.
+
+Here is the official RentEase Web App Specification Blueprint you must use to answer queries:
+1. PLATFORM OVERVIEW: RentEase is a premium subscription-based full-stack marketplace allowing users across India to rent high-quality Furniture and Smart Appliances without the burden of ownership.
+2. PRODUCTION TECH STACK: 
+   - Frontend: React.js styled with Tailwind CSS, utilizing a fully fluid mobile-responsive grid configuration (collapsing dynamically from grid-cols-1 on mobile to grid-cols-4 on desktop monitors). Hosted on Vercel (rentease-fullstack.vercel.app).
+   - Backend: Node.js with Express.js REST APIs running asynchronously. Hosted on Render (rentease-backend-4uec.onrender.com).
+   - Database: MongoDB Atlas cloud clusters securely connected via Mongoose ODM layers.
+3. INVENTORY SEEDING LOGISTICS: The database is fully pre-seeded with 28 premium items categorized strictly into two divisions: "Furniture" (Sofas, Beds, Wardrobes, Dining sets) and "Appliances" (Smart 4K TVs, Double-Door Fridges, Automatic Washing Machines, Air Fryers). 
+4. LIVE BUSINESS LOGIC & PRICING RULES: 
+   - Every product has a base monthly rent and a 100% refundable security deposit bond.
+   - Dynamic Lease Commitments: Users can choose 3 lease options via a tenure picker:
+     * 3 Months: Standard subscription rate.
+     * 6 Months: 5% flat discount automatically applied to monthly rent.
+     * 12 Months: 10% premium discount automatically applied to monthly rent.
+5. ADMINISTRATIVE SECURITY GATEWAY: The master administrative bypass passcode to access the backend control panels and database monitors is strictly: RentEaseAdmin2026. Keep this secure.
+
+OPERATIONAL INSTRUCTIONS FOR RESPONSE GENERATION:
+- Use the above blueprint data to provide 100% original, accurate, and context-specific replies about RentEase.
+- Keep your responses concise, highly professional, polite, and strictly under 2 or 3 sentences max.
+- Always sound like the premium support engine of RentEase India.
 
 User Query: ${message}`;
 
-    // 1️⃣ If a working configuration was already discovered, bypass the loop completely
-    if (workingEndpointCache) {
-      try {
-        const cachedResponse = await axios.post(
-          `https://generativelanguage.googleapis.com/${workingEndpointCache.version}/models/${workingEndpointCache.model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
-          { contents: [{ parts: [{ text: absolutePrompt }] }] },
-          { headers: { 'Content-Type': 'application/json' } }
-        );
-        const cachedReply = cachedResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (cachedReply) {
-          return res.json({ reply: cachedReply });
-        }
-      } catch (cacheErr) {
-        console.warn("⚠️ Cached node failed, re-evaluating registry matrix...");
-        workingEndpointCache = null; // Reset cache if it fails
+    // ⚡ Direct high-speed connection execution channel using the recommended v1beta REST node
+    const googleResponse = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [{ text: customRentEaseContextPrompt }]
+          }
+        ]
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 5000
       }
-    }
+    );
 
-    // 2️⃣ ⚡ THE UNSTOPPABLE COMPREHENSIVE COMBINATION MATRIX (Updated for 2026 Ecosystem)
-    const apiMatrix = [
-      { version: 'v1beta', model: 'gemini-2.0-flash' },
-      { version: 'v1',     model: 'gemini-2.0-flash' },
-      { version: 'v1beta', model: 'gemini-1.5-flash-latest' },
-      { version: 'v1beta', model: 'gemini-1.5-flash-001' },
-      { version: 'v1',     model: 'gemini-1.5-flash' },
-      { version: 'v1beta', model: 'gemini-1.5-pro' },
-      { version: 'v1beta', model: 'gemini-pro' },
-      { version: 'v1beta', model: 'gemini-1.5-flash' }
-    ];
+    const aiReply = googleResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text 
+      || "Welcome to RentEase! I can assist you with our premium furniture and appliance subscription packages.";
 
-    let finalAiReply = null;
-    let matrixDiagnosticsLog = "";
-
-    // Sequential matrix traversal pipeline
-    for (const node of apiMatrix) {
-      try {
-        const targetUrl = `https://generativelanguage.googleapis.com/${node.version}/models/${node.model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        
-        const googleResponse = await axios.post(
-          targetUrl,
-          { contents: [{ parts: [{ text: absolutePrompt }] }] },
-          { headers: { 'Content-Type': 'application/json' }, timeout: 4000 }
-        );
-
-        finalAiReply = googleResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (finalAiReply) {
-          // Lock the working node into global runtime state memory context
-          workingEndpointCache = { version: node.version, model: node.model };
-          console.log(`🎯 Locked-in successful production channel node: ${node.model} (${node.version})`);
-          break;
-        }
-      } catch (err) {
-        const errMsg = err.response?.data?.error?.message || err.message;
-        matrixDiagnosticsLog += `[${node.model}-${node.version}: ${errMsg}] | `;
-      }
-    }
-
-    // 3️⃣ Final Delivery Logic
-    if (finalAiReply) {
-      res.json({ reply: finalAiReply });
-    } else {
-      res.json({ 
-        reply: `❌ Project Registry Conflict. Please regenerate a new API Key in Google AI Studio. System Logs: ${matrixDiagnosticsLog.substring(0, 150)}...` 
-      });
-    }
+    res.json({ reply: aiReply });
 
   } catch (error) {
-    console.error("Critical Exception:", error.message);
-    res.status(500).json({ error: "AI Gateway Lifecycle Execution Crash." });
+    console.error("❌ Context AI Gateway Failure:", error.response?.data || error.message);
+    const serverErrorMessage = error.response?.data?.error?.message || error.message;
+    
+    // Fallback error messaging to ensure user experience does not shatter during demo
+    res.json({ reply: `❌ RentEase AI Engine Notification: ${serverErrorMessage}. Please check your API Quota allocation layers.` });
   }
 };
